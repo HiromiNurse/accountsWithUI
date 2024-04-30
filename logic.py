@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import *
-from HiromiNurse9.gui import *
+from gui import *
 from accounts import *
 import csv
 
@@ -7,7 +7,10 @@ import csv
 class Logic(QMainWindow, Ui_Dialog):
     current_user = Account('holder')
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Function Create an instance window and connect buttons to functions
+        """
         super().__init__()
         self.setupUi(self)
 
@@ -29,21 +32,35 @@ class Logic(QMainWindow, Ui_Dialog):
 
         self.comboBox.currentIndexChanged.connect(lambda: self.change_account())
 
-    def create_account(self):
+    def create_account(self) -> None:
+        """
+        Function On create account button click, creates an account with $0 and the
+        name entered into the entry at the top right
+        """
         name = self.entry_AccountName.text().strip().lower()
-        self.accounts[name] = [0, 'checking', 0]
-        name_atype = name + f",{self.accounts[name][1]}"
-        self.comboBox.addItem(name_atype)
-        self.comboBox.setCurrentIndex(self.comboBox.findText(name_atype))
+        if name != "enter account name":
+            self.accounts[name] = [0, 'checking', 0]
+            name_atype = name + f",{self.accounts[name][1]}"
+            self.comboBox.addItem(name_atype)
+            self.comboBox.setCurrentIndex(self.comboBox.findText(name_atype))
 
-    def create_saving(self):
+    def create_saving(self) -> None:
+        """
+        Function On create saving account button click, creates a saving account with $100 and the
+        name entered into the entry at the top right
+        """
         name = self.entry_AccountName.text().strip().lower()
-        self.accounts[name] = [100, 'saving', 0]
-        name_atype = name + f",{self.accounts[name][1]}"
-        self.comboBox.addItem(name_atype)
-        self.comboBox.setCurrentIndex(self.comboBox.findText(name_atype))
+        if name != "enter account name":
+            self.accounts[name] = [100, 'saving', 0]
+            name_atype = name + f",{self.accounts[name][1]}"
+            self.comboBox.addItem(name_atype)
+            self.comboBox.setCurrentIndex(self.comboBox.findText(name_atype))
 
-    def deposit_button(self):
+    def deposit_button(self) -> None:
+        """
+        Function Adds the value in the entry next to the deposit button to the current selected
+        account's balance. Also applies interest to saving accounts every 5 deposits
+        """
         amount = self.entry_Deposit.text()
         try:
             amount = float(amount)
@@ -63,7 +80,11 @@ class Logic(QMainWindow, Ui_Dialog):
             except ChildProcessError:
                 self.entry_Deposit.setText("Invalid amount")
 
-    def withdraw_button(self):
+    def withdraw_button(self) -> None:
+        """
+        Function Subtracts the value in the entry next to the withdraw button from the current
+        selected account's balance
+        """
         amount = self.entry_Withdraw.text()
         try:
             amount = float(amount)
@@ -81,7 +102,11 @@ class Logic(QMainWindow, Ui_Dialog):
             except ChildProcessError:
                 self.entry_Withdraw.setText("Invalid amount")
 
-    def set_balance_button(self):
+    def set_balance_button(self) -> None:
+        """
+        Function Set's the selected account's balance to the value entered into the
+        entry next to the set balance button
+        """
         amount = self.entry_SetBalance.text()
         try:
             amount = float(amount)
@@ -99,10 +124,17 @@ class Logic(QMainWindow, Ui_Dialog):
             except ChildProcessError:
                 self.entry_SetBalance.setText(f"Invalid amount")
 
-    def set_name_button(self):
+    def set_name_button(self) -> None:
+        """
+        Function Shows the confirmation button for changing account name
+        """
         self.button_Confirm.show()
 
-    def confirm_button(self):
+    def confirm_button(self) -> None:
+        """
+        Function Changes the selected account's name to the string entered into the entry
+        next to the set name button
+        """
         self.button_Confirm.hide()
         name = Logic.current_user.get_name()
         balance = self.accounts[name][0]
@@ -116,7 +148,10 @@ class Logic(QMainWindow, Ui_Dialog):
         del self.accounts[name]
         self.update_text()
 
-    def update_text(self):
+    def update_text(self) -> None:
+        """
+        Function Updates the text displayed in the top right label
+        """
         name = Logic.current_user.get_name()
         balance = self.accounts[name][0]
         atype = self.accounts[name][1]
@@ -134,7 +169,10 @@ class Logic(QMainWindow, Ui_Dialog):
                     f"Minimum Balance: {SavingAccount.MINIMUM}")
         self.label_AccountInformation.setText(text)
 
-    def update_accounts(self):
+    def update_accounts(self) -> None:
+        """
+        Function Updates account information stored in the accounts dict
+        """
         name = Logic.current_user.get_name()
         balance = Logic.current_user.get_balance()
         atype = Logic.current_user.atype
@@ -145,7 +183,10 @@ class Logic(QMainWindow, Ui_Dialog):
             self.accounts[name] = [balance, atype, 0]
         self.update_text()
 
-    def change_account(self):
+    def change_account(self) -> None:
+        """
+        Function Changes the current selected account
+        """
         del Logic.current_user
         name = self.comboBox.currentText().lower().strip().split(",")[0]
         atype = self.accounts[name][1]
@@ -156,7 +197,11 @@ class Logic(QMainWindow, Ui_Dialog):
             Logic.current_user.get_balance()
         self.update_text()
 
-    def read_from_file(self):
+    def read_from_file(self) -> None:
+        """
+        Function Reads info from the accounts.csv file and stores it in the
+        accounts dict
+        """
         with open('accounts.csv', 'r') as input_file:
             for line in input_file:
                 line = line.strip().split(',')
@@ -166,12 +211,19 @@ class Logic(QMainWindow, Ui_Dialog):
                 deposit_count = int(line[3])
                 self.accounts[name] = [balance, atype, deposit_count]
 
-    def populate_dropdown(self):
+    def populate_dropdown(self) -> None:
+        """
+        Function Reads from the accounts dict and fills out the dropdown menu with
+        selectable accounts
+        """
         for names in self.accounts.keys():
             self.comboBox.addItem(names+f",{self.accounts[names][1]}")
             self.change_account()
 
-    def closeEvent(self, event):
+    def closeEvent(self, event) -> None:
+        """
+        Function Override the default close sequence to include saving the new accounts to the file
+        """
         with open('accounts.csv', 'w', newline="") as output_file:
             content = csv.writer(output_file)
             for name, values in self.accounts.items():

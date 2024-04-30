@@ -11,11 +11,9 @@ class Account:
         """
         Function withdraw amount from account total
         :param amount: Int Amount to withdraw
-        :return: boolean
         """
-        if (amount > 0) and ((self.__balance - amount) >= self.MINIMUM):  # Make sure it works
+        if (amount > 0) and ((self.__balance - amount) >= self.MINIMUM):
             self.__balance -= amount
-            return True
         else:
             raise ChildProcessError
 
@@ -98,4 +96,3 @@ class SavingAccount(Account):
     def __str__(self):
         line = super().__str__().split(", ")
         return f"SAVING ACCOUNT: {line[0]}, {line[1]}"
-        # return f"SAVING ACCOUNT name: {self.get_name()}, SAVING ACCOUNT balance: {self.get_balance():.2f}"
