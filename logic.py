@@ -18,7 +18,8 @@ class Logic(QMainWindow, Ui_Dialog):
 
         self.accounts = {}
         self.read_from_file()
-        self.populate_dropdown()
+
+        self.button_login.clicked.connect(lambda: self.login())
 
         self.button_Account.clicked.connect(lambda: self.create_account())
         self.button_SavingAccount.clicked.connect(lambda: self.create_saving())
@@ -30,31 +31,62 @@ class Logic(QMainWindow, Ui_Dialog):
         self.button_Confirm.clicked.connect(lambda: self.confirm_button())
         self.button_SetBalance.clicked.connect(lambda: self.set_balance_button())
 
-        self.comboBox.currentIndexChanged.connect(lambda: self.change_account())
+    def login(self):
+        first_name = self.entry_Login_First.text().lower().strip()
+        last_name = self.entry_Login_Last.text().lower().strip()
+        name = f"{first_name} {last_name}"
+        try:
+            pin_number = int(self.entry_Login_Pin.text())
+        except ValueError:
+            self.label_AccountInformation.setText("Pin Number must be a number")
+        else:
+            if name in self.accounts.keys():
+                if pin_number == self.accounts[name][3]:
+                    self.change_account(name)
+                else:
+                    self.label_AccountInformation.setText("Invalid Login. Try Again.")
+            else:
+                self.label_AccountInformation.setText("Invalid Login. Try Again.")
+
+                self.entry_Login_Pin.clear()
+                self.entry_Login_Last.clear()
+                self.entry_Login_First.clear()
 
     def create_account(self) -> None:
         """
         Function On create account button click, creates an account with $0 and the
         name entered into the entry at the top right
         """
-        name = self.entry_AccountName.text().strip().lower()
-        if name != "enter account name":
-            self.accounts[name] = [0, 'checking', 0]
-            name_atype = name + f",{self.accounts[name][1]}"
-            self.comboBox.addItem(name_atype)
-            self.comboBox.setCurrentIndex(self.comboBox.findText(name_atype))
+        name = f"{self.entry_register_First.text().strip().lower()} {self.entry_register_Last.text().strip().lower()}"
+        try:
+            pin_number = int(self.entry_register_Pin.text().strip())
+        except ValueError:
+            self.label_AccountInformation.setText("Pin Number must be a number")
+        else:
+            self.accounts[name] = [0, 'checking', 0, pin_number]
+            self.change_account(name)
+
+            self.entry_register_Pin.clear()
+            self.entry_register_Last.clear()
+            self.entry_register_First.clear()
 
     def create_saving(self) -> None:
         """
         Function On create saving account button click, creates a saving account with $100 and the
         name entered into the entry at the top right
         """
-        name = self.entry_AccountName.text().strip().lower()
-        if name != "enter account name":
-            self.accounts[name] = [100, 'saving', 0]
-            name_atype = name + f",{self.accounts[name][1]}"
-            self.comboBox.addItem(name_atype)
-            self.comboBox.setCurrentIndex(self.comboBox.findText(name_atype))
+        name = f"{self.entry_register_First.text().strip().lower()} {self.entry_register_Last.text().strip().lower()}"
+        try:
+            pin_number = int(self.entry_register_Pin.text().strip())
+        except ValueError:
+            self.label_AccountInformation.setText("Pin Number must be a number")
+        else:
+            self.accounts[name] = [100, 'saving', 0, pin_number]
+            self.change_account(name)
+
+            self.entry_register_Pin.clear()
+            self.entry_register_Last.clear()
+            self.entry_register_First.clear()
 
     def deposit_button(self) -> None:
         """
@@ -136,16 +168,10 @@ class Logic(QMainWindow, Ui_Dialog):
         next to the set name button
         """
         self.button_Confirm.hide()
-        name = Logic.current_user.get_name()
-        balance = self.accounts[name][0]
-        atype = self.accounts[name][1]
-        deposit_count = self.accounts[name][2]
+        old_name = Logic.current_user.get_name()
         new_name = self.entry_SetName.text().lower().strip()
-        self.accounts[new_name] = [balance, atype, deposit_count]
-        self.comboBox.addItem(new_name+f",{self.accounts[new_name][1]}")
-        self.comboBox.setCurrentIndex(self.comboBox.findText(new_name+f",{self.accounts[new_name][1]}"))
-        self.comboBox.removeItem(self.comboBox.findText(name+f",{self.accounts[name][1]}"))
-        del self.accounts[name]
+        self.accounts[new_name] = self.accounts.pop(old_name)
+        Logic.current_user.set_name(new_name)
         self.update_text()
 
     def update_text(self) -> None:
@@ -176,19 +202,19 @@ class Logic(QMainWindow, Ui_Dialog):
         name = Logic.current_user.get_name()
         balance = Logic.current_user.get_balance()
         atype = Logic.current_user.atype
+        pin_number = self.accounts[name][3]
         if atype == "saving":
             deposit_count = Logic.current_user.get_deposit_count()
-            self.accounts[name] = [balance, atype, deposit_count]
+            self.accounts[name] = [balance, atype, deposit_count, pin_number]
         else:
-            self.accounts[name] = [balance, atype, 0]
+            self.accounts[name] = [balance, atype, 0, pin_number]
         self.update_text()
 
-    def change_account(self) -> None:
+    def change_account(self, name) -> None:
         """
         Function Changes the current selected account
         """
         del Logic.current_user
-        name = self.comboBox.currentText().lower().strip().split(",")[0]
         atype = self.accounts[name][1]
         if atype == 'checking':
             Logic.current_user = Account(name, self.accounts[name][0])
@@ -209,16 +235,8 @@ class Logic(QMainWindow, Ui_Dialog):
                 balance = float(line[1])
                 atype = line[2]
                 deposit_count = int(line[3])
-                self.accounts[name] = [balance, atype, deposit_count]
-
-    def populate_dropdown(self) -> None:
-        """
-        Function Reads from the accounts dict and fills out the dropdown menu with
-        selectable accounts
-        """
-        for names in self.accounts.keys():
-            self.comboBox.addItem(names+f",{self.accounts[names][1]}")
-            self.change_account()
+                pin_number = int(line[4])
+                self.accounts[name] = [balance, atype, deposit_count, pin_number]
 
     def closeEvent(self, event) -> None:
         """
@@ -227,5 +245,5 @@ class Logic(QMainWindow, Ui_Dialog):
         with open('accounts.csv', 'w', newline="") as output_file:
             content = csv.writer(output_file)
             for name, values in self.accounts.items():
-                content.writerow([name, values[0], values[1], values[2]])
+                content.writerow([name, values[0], values[1], values[2], values[3]])
         event.accept()
