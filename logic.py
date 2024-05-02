@@ -3,6 +3,10 @@ from gui import *
 from accounts import *
 import csv
 
+"""
+Make it so the bottom section is hidden until someone is logged in as a user.
+Or registered.
+"""
 
 class Logic(QMainWindow, Ui_Dialog):
     current_user = Account('holder')
@@ -213,6 +217,7 @@ class Logic(QMainWindow, Ui_Dialog):
     def change_account(self, name) -> None:
         """
         Function Changes the current selected account
+        :param name: name of the account being switched to
         """
         del Logic.current_user
         atype = self.accounts[name][1]
