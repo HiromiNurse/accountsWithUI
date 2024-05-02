@@ -19,6 +19,8 @@ class Logic(QMainWindow, Ui_Dialog):
         self.setupUi(self)
 
         self.button_Confirm.hide()
+        self.frame_app_functions.hide()
+        self.label_login_status.setText("")
 
         self.accounts = {}
         self.read_from_file()
@@ -42,19 +44,23 @@ class Logic(QMainWindow, Ui_Dialog):
         try:
             pin_number = int(self.entry_Login_Pin.text())
         except ValueError:
-            self.label_AccountInformation.setText("Pin Number must be a number")
+            self.label_login_status.setText("Pin Number must\nbe a number")
         else:
             if name in self.accounts.keys():
                 if pin_number == self.accounts[name][3]:
                     self.change_account(name)
+                    self.frame_app_functions.show()
                 else:
-                    self.label_AccountInformation.setText("Invalid Login. Try Again.")
+                    self.label_login_status.setText("Invalid Login.\nTry Again.")
+                    self.frame_app_functions.hide()
             else:
-                self.label_AccountInformation.setText("Invalid Login. Try Again.")
+                self.label_login_status.setText("Invalid Login.\nTry Again.")
+                self.frame_app_functions.hide()
 
-                self.entry_Login_Pin.clear()
-                self.entry_Login_Last.clear()
-                self.entry_Login_First.clear()
+            self.entry_Login_Pin.clear()
+            self.entry_Login_Last.clear()
+            self.entry_Login_First.clear()
+
 
     def create_account(self) -> None:
         """
@@ -65,14 +71,15 @@ class Logic(QMainWindow, Ui_Dialog):
         try:
             pin_number = int(self.entry_register_Pin.text().strip())
         except ValueError:
-            self.label_AccountInformation.setText("Pin Number must be a number")
+            self.label_login_status.setText("Pin Number must be a number")
         else:
             self.accounts[name] = [0, 'checking', 0, pin_number]
             self.change_account(name)
+            self.frame_app_functions.show()
 
-            self.entry_register_Pin.clear()
-            self.entry_register_Last.clear()
-            self.entry_register_First.clear()
+        self.entry_register_Pin.clear()
+        self.entry_register_Last.clear()
+        self.entry_register_First.clear()
 
     def create_saving(self) -> None:
         """
@@ -87,10 +94,11 @@ class Logic(QMainWindow, Ui_Dialog):
         else:
             self.accounts[name] = [100, 'saving', 0, pin_number]
             self.change_account(name)
+            self.frame_app_functions.show()
 
-            self.entry_register_Pin.clear()
-            self.entry_register_Last.clear()
-            self.entry_register_First.clear()
+        self.entry_register_Pin.clear()
+        self.entry_register_Last.clear()
+        self.entry_register_First.clear()
 
     def deposit_button(self) -> None:
         """
